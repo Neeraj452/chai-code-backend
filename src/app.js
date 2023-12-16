@@ -1,5 +1,5 @@
-import express from "express"
-import cors from "cors"
+import express from "express" // we are importing express package here to create express app, and to use express middleware functions, and to use express router, and to use express response methods, and to use express request methods, and to use express next function.
+import cors from "cors" // we are importing cors package here to enable cors in our express app, so that our frontend can make requests to our backend., and we are also passing cors options to cors method., and we are also passing cors options to cors method.
 import cookieParser from "cookie-parser"
 
 const app = express()
@@ -20,6 +20,9 @@ import userRouter from './routes/user.routes.js'
 
 
 //routes declaration
+app.get("/", (req, res) => {
+    res.send("Hello world")
+})
 app.use("/api/v1/users", userRouter)
 
 // http://localhost:8000/api/v1/users/register

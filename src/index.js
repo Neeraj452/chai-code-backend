@@ -1,8 +1,8 @@
 // require('dotenv').config({path: './env'})
-import dotenv from "dotenv"
+import dotenv from "dotenv" // we are importing dotenv package here to load environment variables from .env file
 import connectDB from "./db/index.js";
 import {app} from './app.js'
-dotenv.config({
+dotenv.config({ // we are calling config method of dotenv package to load environment variables from .env file, and we are passing the path of .env file to it, the path is relative to the root directory of the project, so we are using ./ to indicate that the .env file is in the root directory of the project.
     path: './.env'
 })
 
