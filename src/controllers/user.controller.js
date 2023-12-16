@@ -5,14 +5,14 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 
-const generateAccessAndRefereshTokens = async(userId) =>{
+const generateAccessAndRefereshTokens = async(userId) =>{ // this function will generate access and refresh token for user
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
+        const refreshToken = user.generateRefreshToken() // we are calling generateRefreshToken method of user model to generate refresh token for user 
 
         user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
+        await user.save({ validateBeforeSave: false }) // we are saving user with refresh token in database validateBeforeSave: false because we don't want to validate user before saving it in database 
 
         return {accessToken, refreshToken}
 
@@ -65,7 +65,7 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "Avatar file is required")
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath) // we are calling uploadOnCloudinary function to upload avatar image on cloudinary and we are passing avatarLocalPath to it 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if (!avatar) {
@@ -83,7 +83,7 @@ const registerUser = asyncHandler( async (req, res) => {
     })
 
     const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
+        "-password -refreshToken" // we don't want to send password and refresh token to frontend so we use select method to exclude them from response
     )
 
     if (!createdUser) {
@@ -124,25 +124,26 @@ const loginUser = asyncHandler(async (req, res) =>{
     if (!user) {
         throw new ApiError(404, "User does not exist")
     }
-
-   const isPasswordValid = await user.isPasswordCorrect(password)
+// user object have isPasswordCorrect method which we have created in user model to check if password is correct or not
+//  user object can easily access userSchema.methods.isPasswordCorrect method because we have defined it in user model 
+   const isPasswordValid = await user.isPasswordCorrect(password) // we are calling isPasswordCorrect method of user model to check if password is correct or not 
 
    if (!isPasswordValid) {
     throw new ApiError(401, "Invalid user credentials")
     }
 
-   const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+   const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id) // we are passing user id to generateAccessAndRefereshTokens function to generate access and refresh token for that user 
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken") // we don't want to send password and refresh token to frontend so we use select method to exclude them from response 
 
-    const options = {
+    const options = { // cookie options 
         httpOnly: true,
         secure: true
     }
 
     return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
+    .cookie("accessToken", accessToken, options) // cookie(name, value, options) 
     .cookie("refreshToken", refreshToken, options)
     .json(
         new ApiResponse(
@@ -157,15 +158,15 @@ const loginUser = asyncHandler(async (req, res) =>{
 })
 
 const logoutUser = asyncHandler(async(req, res) => {
-    await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(  // findOneAndUpdate is deprecated so we use findByIdAndUpdate instead of it 
         req.user._id,
         {
-            $set: {
+            $set: { // $set is used to update the document 
                 refreshToken: undefined
             }
         },
         {
-            new: true
+            new: true // return the updated document
         }
     )
 
