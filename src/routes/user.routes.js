@@ -1,14 +1,26 @@
 import { Router } from "express";
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
+import { 
+    loginUser, 
+    logoutUser, 
+    registerUser, 
+    refreshAccessToken, 
+    changeCurrentPassword, 
+    getCurrentUser, 
+    updateUserAvatar, 
+    updateUserCoverImage, 
+    getUserChannelProfile, 
+    getWatchHistory, 
+    updateAccountDetails
+} from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 
-const router = Router() // notice we are calling the Router() method here, not router() method, because Router() method returns a router object, whereas router() method returns a middleware function.
+const router = Router()
 
-router.route("/register").post( 
-    upload.fields([ // upload.fields() method is used to upload multiple files, in this case avatar and coverImage, you can also use upload.single() method to upload single file,
-        {   
+router.route("/register").post(  
+    upload.fields([ // upload.fields() is used to upload multiple files, upload.single() is used to upload single file
+        {
             name: "avatar",
             maxCount: 1
         }, 
@@ -22,9 +34,17 @@ router.route("/register").post(
 
 router.route("/login").post(loginUser)
 
-
 //secured routes
-router.route("/logout").post(verifyJWT,  logoutUser) // we are passing verifyJWT middleware function to logoutUser controller function as a second argument, so that logoutUser controller function can access req.user property, which is set by verifyJWT middleware function, and we are passing verifyJWT middleware function to logoutUser controller function as a second argument, so that logoutUser controller function can access req.user property, which is set by verifyJWT middleware function
-router.route("/refresh-token").post(refreshAccessToken) 
+router.route("/logout").post(verifyJWT,  logoutUser)
+router.route("/refresh-token").post(refreshAccessToken)
+router.route("/change-password").post(verifyJWT, changeCurrentPassword)
+router.route("/current-user").get(verifyJWT, getCurrentUser)
+router.route("/update-account").patch(verifyJWT, updateAccountDetails)
+
+router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar) //upload.single() is used to upload single file
+router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage)
+
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+router.route("/history").get(verifyJWT, getWatchHistory)
 
 export default router
