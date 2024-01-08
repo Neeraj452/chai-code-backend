@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import { Video } from "../models/video.model.js";
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{ // this function will generate access and refresh token for user
@@ -473,6 +474,57 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     )
 })
 
+const UploadVideo = asyncHandler(async(req, res) => {
+    const {title, description, duration} = req.body
+
+    if (![title, description,duration].every((field) => field?.trim())) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const videoLocalPath = req.files?.videoFile[0]?.path
+    if (!videoLocalPath) {
+        throw new ApiError(400, "Video file is missing")
+    }
+
+    const video = await uploadOnCloudinary(videoLocalPath)
+
+    if (!video.url) {
+        throw new ApiError(400, "Error while uploading on video")
+
+    }
+
+    const thumbnailLocalPath = req.files?.thumbnail[0]?.path
+
+    if (!thumbnailLocalPath) {
+        throw new ApiError(400, "Thumbnail file is missing")
+    }
+
+    const thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
+
+    if (!thumbnail.url) {
+        throw new ApiError(400, "Error while uploading on thumbnail")
+
+    }
+
+    const newVideo = await Video.create({
+        title,
+        description,
+        duration,
+        isPublished:true,
+        videoFile: video.url,
+        thumbnail: thumbnail.url,
+        owner: req.user._id
+    })
+
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(201, newVideo, "Video uploaded successfully")
+    )
+})
+
+
 export {
     registerUser,
     loginUser,
@@ -484,5 +536,6 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    UploadVideo
 }
